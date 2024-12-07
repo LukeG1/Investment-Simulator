@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    @font-face {
+      font-family: 'IBM Plex Mono Light';
+      font-style: normal;
+      font-weight: 300;
+      src: local(""), url('assets/fonts/IBMPlexMono-Light.ttf') format('ttf');
+    }
+}
+
+html {
+    background-color: rgb(82, 82, 82);
+    text-align: center;
+    color: white;
+    position: fixed;
+}
+
+body {
+    margin: 0;
+    color: white;
+    font-family: "IBM-Plex-Mono";
+    position: fixed;
+}
+
+#app {
+    height: 100vh;
+    text-align: center;
+    position: fixed;
+}
+
+@layer base {
+  :root {
+        --radius: 0.5rem;
+    }
+}
