@@ -8,3 +8,7 @@ The reason for approaching the problem like this is two fold:
 2. I don't think investment advice is individualized enough, even if you hired a personal financial advisor they aren't running these simulations, they are using the known reccomendations, but with this system, you could brute force a strategy for anyone in any finanical situation that gives them the best chance
 
 # Implementation
+
+## Data Aggregation
+
+The dificulty with simulating something over such a long term as a person's life is the quantity of data, you need a huge number of samples to get an accurate idea of the values 80 some years later with any ammount of detirminisim, This led me to store anything that I would need to track a balance of as a discrete distribution of outcomes, which I can take a snapshot of at the end of every year, meaning I only need to store one of these for every balance, instead of for every balance for every year, or frame the data around a simulation and store millions of those. This also allows me to implement parreleization at the simplest level, things like adding 2 of these distributions together, or multiplying by a return, which adds some overhead for spawining workers to do so, but simplfiies the development significantly
