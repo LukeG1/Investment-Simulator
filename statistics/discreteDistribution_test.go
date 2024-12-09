@@ -2,24 +2,26 @@ package statistics
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 )
 
-func TestAddConstant(t *testing.T) {
+func TestAdd(t *testing.T) {
+	n := 10_000_000
+	dd := NewDiscreteDistribution(n, 100, .01)
 
-	const n int = 1_000_000_000
-
-	values := [n]float64{}
-
+	shouldStop := false
 	for i := 0; i < n; i++ {
-		values[i] = 2
+		shouldStop = dd.AddOutcome(2 * rand.NormFloat64())
+		if shouldStop {
+			fmt.Printf("Stopped at iteration: %d\n", i)
+			break
+		}
 	}
 
-	testDistribution := DiscreteDistribtuion{
-		values[:],
-	}
+	fmt.Println(Range(dd.meanWindow))
+	fmt.Println(shouldStop)
 
-	testDistribution.Add(1)
+	fmt.Println(dd.Compute().standardDeviation)
 
-	fmt.Println(testDistribution.outcomes[n/2])
 }

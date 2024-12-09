@@ -1,21 +1,19 @@
 package models
 
 import (
-	"InvestmentSimulator/statistics"
+	"math"
 )
 
 type HYSA struct {
-	balance       statistics.DiscreteDistribtuion
-	yearDeposited float64
-	yearWithdrawn float64
+	balance AccountStatus
 }
 
 // getBalance implements Account.
-func (hysa HYSA) GetBalance() *statistics.DiscreteDistribtuion {
+func (hysa HYSA) GetBalance() *AccountStatus {
 	return &hysa.balance
 }
 
 // allowedContribution implements Account.
 func (hysa HYSA) AllowedContribution() float64 {
-	return 10_000.0
+	return math.MaxFloat64
 }

@@ -24,6 +24,7 @@ func StandardDeviation(numbers []float64) float64 {
 	return math.Sqrt(sum / float64(len(numbers)))
 }
 
+// TODO: refactor with a second version that takes a sorted list, accessible externally but also called internally
 // Percentile calculates the p-th percentile of a slice of numbers
 // TODO: this is painfully slow
 func Percentile(numbers []float64, p float64) float64 {
@@ -74,4 +75,44 @@ func Q3(numbers []float64) float64 {
 // IQR calculates the interquartile range (Q3 - Q1)
 func IQR(numbers []float64) float64 {
 	return Q3(numbers) - Q1(numbers)
+}
+
+func Min(slice []float64) float64 {
+	// Initialize the min value with the first element
+	minVal := slice[0]
+	// Iterate through the slice to find the minimum
+	for _, value := range slice {
+		if value < minVal {
+			minVal = value
+		}
+	}
+	return minVal
+}
+func Max(slice []float64) float64 {
+	// Initialize the min value with the first element
+	maxVal := slice[0]
+	// Iterate through the slice to find the minimum
+	for _, value := range slice {
+		if value > maxVal {
+			maxVal = value
+		}
+	}
+	return maxVal
+}
+
+// Function to calculate the range (max - min) of a slice of float64
+func Range(slice []float64) float64 {
+	// Initialize min and max with the first element
+	minVal, maxVal := slice[0], slice[0]
+	// Iterate through the slice to find both the minimum and maximum
+	for _, value := range slice {
+		if value < minVal {
+			minVal = value
+		}
+		if value > maxVal {
+			maxVal = value
+		}
+	}
+	// Return the range (max - min)
+	return maxVal - minVal
 }
