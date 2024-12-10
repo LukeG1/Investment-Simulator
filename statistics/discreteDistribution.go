@@ -15,9 +15,9 @@ type DiscreteDistribution struct {
 
 // TODO: consider if this is the best place, could perhaps be named more aptly here and have a substruct for 5 num summary that lives in the summary file
 type Summary struct {
+	count             int
 	PPF               float64
 	mean              float64
-	count             int
 	standardDeviation float64
 	min               float64
 	q1                float64
@@ -53,7 +53,7 @@ func (dd *DiscreteDistribution) AddOutcome(outcome float64) bool {
 		dd.failureCount++
 	}
 
-	precisionTargetMet := dd.count > dd.windowSize &&
+	precisionTargetMet := dd.count%10 == 0 && dd.count > dd.windowSize &&
 		Range(dd.meanWindow) <= dd.precisionTarget
 	dataLimitReached := dd.count == dd.maxOutcomes
 	return precisionTargetMet || dataLimitReached
@@ -63,9 +63,9 @@ func (dd *DiscreteDistribution) AddOutcome(outcome float64) bool {
 func (dd *DiscreteDistribution) Compute() Summary {
 
 	results := Summary{
+		count: dd.count,
 		PPF:   float64(dd.failureCount) / float64(dd.count),
 		mean:  dd.sum / float64(dd.count),
-		count: dd.count,
 	}
 
 	// sort the list
