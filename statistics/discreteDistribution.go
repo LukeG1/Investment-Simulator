@@ -60,6 +60,8 @@ func (dd *DiscreteDistribution) AddOutcome(outcome float64) bool {
 }
 
 // TODO: each account / asset balance can be parrellized in go routines?
+
+// TODO: think of this more as a snapshot, consider how to increase the count values and such this whole idea may actually be bad
 func (dd *DiscreteDistribution) Compute() Summary {
 
 	results := Summary{
