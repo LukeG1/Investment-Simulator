@@ -43,8 +43,7 @@ func (dd *DiscreteDistribution) AddOutcome(outcome float64) bool {
 	dd.count++
 
 	// Update the mean window with the new value
-	mean := dd.sum / float64(dd.count)
-	// TODO: consider switching to float64(dd.failureCount) / float64(dd.count)
+	mean := dd.sum / float64(dd.count) // TODO: consider switching to float64(dd.failureCount) / float64(dd.count)
 	index := dd.count % dd.windowSize
 	dd.meanWindow[index] = mean
 

@@ -20,7 +20,7 @@ func GenerateKernelSampler(data *[]float64) NaieveDataSampler {
 	n := int32(len(*data))
 
 	// https://en.wikipedia.org/wiki/Kernel_density_estimation#A_rule-of-thumb_bandwidth_estimator
-	// first parameter slighly optimized by me, not sure if worth doing but improves test cases
+	// first parameter slighly optimized by me for this data, not sure if worth doing but improves test cases
 	h := .55 * min(sigma, IQR(*data)/1.34) * math.Pow(float64(n), -(1./5.))
 
 	return NaieveDataSampler{
@@ -29,7 +29,7 @@ func GenerateKernelSampler(data *[]float64) NaieveDataSampler {
 		mu,
 		sigma,
 		n,
-		// TODO: consider adding mobile seed for true randomness
+		// TODO: consider adding varried seed for better randomness after testing phase
 		rand.New(rand.NewSource(0)),
 	}
 }
