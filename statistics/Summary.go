@@ -116,3 +116,12 @@ func Range(slice []float64) float64 {
 	// Return the range (max - min)
 	return maxVal - minVal
 }
+
+func Sgn(x float64) float64 {
+	if x > 0 {
+		return 1
+	} else if x < 0 {
+		return -1
+	}
+	return 0
+}
