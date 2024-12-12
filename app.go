@@ -1,6 +1,8 @@
 package main
 
 import (
+	"InvestmentSimulator/simulation"
+	"InvestmentSimulator/statistics"
 	"context"
 	"fmt"
 )
@@ -24,4 +26,8 @@ func (a *App) startup(ctx context.Context) {
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
+}
+
+func (a *App) RunSimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.OutcomeAggregator {
+	return simulation.SimpleSimulation(precisionTarget, years, startingBalance, investment, additional)
 }
