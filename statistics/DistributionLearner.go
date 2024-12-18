@@ -11,6 +11,7 @@ import (
 
 // TODO: document
 // TODO: add my stabaility window check
+// TODO: cite the P2 algorthim paper
 
 func calcP2(qp1, q, qm1, d, np1, n, nm1 float64) float64 {
 	outer := d / (np1 - nm1)

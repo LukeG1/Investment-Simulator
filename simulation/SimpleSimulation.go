@@ -36,7 +36,7 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 
 			magicAccount.Accrue()
 
-			distributionLearners[year].AddOutcome(magicAccount.Balances[investment].Total)
+			distributionLearners[year].AddOutcome(magicAccount.Investments[investment].Balance)
 
 			switch investment {
 			case "bonds":

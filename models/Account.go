@@ -4,24 +4,23 @@ import (
 	"InvestmentSimulator/statistics"
 )
 
-// TODO: Something somewhere should probably be called an investment
-type Balance struct {
-	Total          float64
+type Investment struct {
+	Balance        float64
 	yearDeposited  float64
 	yearWithdrawn  float64
 	economicFactor *EconomicFactor
 	accumulator    *statistics.OutcomeAggregator
 }
 
-func (balance *Balance) deposit(amount float64) {
-	balance.Total += amount
-	balance.yearDeposited += amount
+func (investment *Investment) deposit(amount float64) {
+	investment.Balance += amount
+	investment.yearDeposited += amount
 }
 
-func (balance *Balance) accrue() {
-	balance.Total *= 1 + balance.economicFactor.Rate - Inflation.Rate
-	balance.yearDeposited = 0
-	balance.yearWithdrawn = 0
+func (investment *Investment) accrue() {
+	investment.Balance *= 1 + investment.economicFactor.Rate - Inflation.Rate
+	investment.yearDeposited = 0
+	investment.yearWithdrawn = 0
 }
 
 // Abstract account implemented like here: https://stackoverflow.com/questions/30261032/how-to-implement-an-abstract-class-in-go
@@ -31,13 +30,13 @@ type Account interface {
 
 type AbstractAccount struct {
 	Account
-	Balances map[string]*Balance
+	Investments map[string]*Investment
 }
 
-func NewBalanceMap(economicFactors ...*EconomicFactor) map[string]*Balance {
-	balances := make(map[string]*Balance)
+func NewBalanceMap(economicFactors ...*EconomicFactor) map[string]*Investment {
+	balances := make(map[string]*Investment)
 	for _, economicFactor := range economicFactors {
-		balances[economicFactor.Name] = &Balance{
+		balances[economicFactor.Name] = &Investment{
 			economicFactor: economicFactor,
 		}
 	}
@@ -45,11 +44,11 @@ func NewBalanceMap(economicFactors ...*EconomicFactor) map[string]*Balance {
 }
 
 func (a *AbstractAccount) Deposit(economicFactor string, amount float64) {
-	a.Balances[economicFactor].deposit(min(amount, a.AllowedContribution()))
+	a.Investments[economicFactor].deposit(min(amount, a.AllowedContribution()))
 }
 
 func (a *AbstractAccount) Accrue() {
-	for _, balance := range a.Balances {
+	for _, balance := range a.Investments {
 		balance.accrue()
 	}
 }

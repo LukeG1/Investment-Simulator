@@ -7,7 +7,7 @@ type Magic struct {
 // newHYSA creates a new instance of a High-Yield Savings Account (HYSA).
 func NewMagic(economicFactors ...*EconomicFactor) *Magic {
 	abstractAccount := &AbstractAccount{
-		Balances: NewBalanceMap(economicFactors...),
+		Investments: NewBalanceMap(economicFactors...),
 	}
 	a := &Magic{
 		AbstractAccount: abstractAccount,
