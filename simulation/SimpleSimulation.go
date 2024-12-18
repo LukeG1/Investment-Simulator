@@ -30,14 +30,14 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 		case "market":
 			magicAccount = models.NewMagic(&models.SandP500)
 		}
-		models.Deposit(magicAccount, investment, startingBalance)
+		magicAccount.Deposit(investment, startingBalance)
 		for year := 0; year < years; year++ {
 
-			models.Deposit(magicAccount, investment, additional)
+			magicAccount.Deposit(investment, additional)
 
 			magicAccount.Accrue()
 
-			outcomeAggregators[year].AddOutcome(magicAccount.GetBalance(investment).Total)
+			outcomeAggregators[year].AddOutcome(magicAccount.Balances[investment].Total)
 
 			switch investment {
 			case "bonds":

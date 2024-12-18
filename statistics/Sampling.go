@@ -3,6 +3,7 @@ package statistics
 import (
 	"math"
 	"math/rand"
+	"time"
 )
 
 type NaieveDataSampler struct {
@@ -30,7 +31,7 @@ func GenerateKernelSampler(data *[]float64) NaieveDataSampler {
 		sigma,
 		n,
 		// TODO: consider adding varried seed for better randomness after testing phase
-		rand.New(rand.NewSource(0)),
+		rand.New(rand.NewSource(time.Now().Unix())),
 	}
 }
 
