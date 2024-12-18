@@ -17,4 +17,20 @@ Each investment within each account would need to be tracked with one of these D
 
 ## Modeling Real World Constructs
 
+### Household
+
+A household is what all constructs discussed below will eventually feed into or out of. ...
+
+### Household Factor
+
+Household factors are some kind of historically or anecdotally informed influence on the simulation from inside of a household, this includes things like income, variable budgets, children, social security, etc. ...
+
+### Economic Factors
+
+Economic factors are some kind of historically informed influence on the simulation from outside of a household, this includes things like stock/bond/housing market performance, and inflation. An economic factor includes the raw data that its based on, a name, and a way to sample random data from it.
+
 ### Accounts
+
+The Account is really central to this project, since it's kind of the lowest level construct. An Account is implmeented like an abstract class, and can be used to represent anything from a high yield savings account or a Roth IRA, to a mortgage. The abstract nature of an account means that a new one can be added with as little boilerplate as possible. The current version can be implemented with just an AllowedContribution function, that informs the inner abstract account's deposit function. A similar strategy will be used later in withdrawals. This strategy also let me make a deposit function `account.Deposit(economicFactor string, amount float64)` which works for any account.
+
+Central to an account is a map of string to Investment called Investments. The key in that map is the name of the economic factor the investment is in, and the investment itself has data like the balance, year's stats, and a refrence to the economic factor that is shared among all accounts. This mean's an account like the HYSA can have an investment in 'cash', a RothIRA can have one in stocks and bonds, and a mortgage can have on in the housing market. The allowed economic factors for an account are defined on creation.

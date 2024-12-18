@@ -1,5 +1,7 @@
 package models
 
+import "math"
+
 type Magic struct {
 	*AbstractAccount
 }
@@ -17,5 +19,5 @@ func NewMagic(economicFactors ...*EconomicFactor) *Magic {
 }
 
 func (h *Magic) AllowedContribution() float64 {
-	return 10000.0
+	return math.MaxFloat64
 }
