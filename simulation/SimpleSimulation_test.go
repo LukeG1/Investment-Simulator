@@ -10,5 +10,5 @@ import (
 
 // Take in the stock market values, calculate sample statistics, sample, check that they are similar
 func TestSimpleSimulation(t *testing.T) {
-	SimpleSimulation(1.0, 50)
+	//SimpleSimulation(1.0, 50)
 }

@@ -1,6 +1,7 @@
 package statistics
 
 // https://github.com/cxxr/LiveStats/blob/master/livestats/livestats.py
+// https://www.cs.wustl.edu/~jain/papers/ftp/psqr.pdf
 
 import (
 	"math"
@@ -10,8 +11,6 @@ import (
 )
 
 // TODO: document
-// TODO: add my stabaility window check
-// TODO: cite the P2 algorthim paper
 
 func calcP2(qp1, q, qm1, d, np1, n, nm1 float64) float64 {
 	outer := d / (np1 - nm1)
@@ -120,26 +119,31 @@ func (q *quantile) quantile() float64 {
 }
 
 type DistributionLearner struct {
-	minVal       float64
-	maxVal       float64
-	varM2        float64
-	skewM3       float64
-	kurtM4       float64
-	mean         float64
-	count        int
-	failureCount int
-	initialized  bool
-	stable       bool
-	quantiles    map[float64]*quantile
-	randSrc      *rand.Rand
+	minVal          float64
+	maxVal          float64
+	varM2           float64
+	skewM3          float64
+	kurtM4          float64
+	mean            float64
+	count           int
+	failureCount    int
+	initialized     bool
+	quantiles       map[float64]*quantile
+	randSrc         *rand.Rand
+	precisionTarget float64
+	windowSize      int
+	meanWindow      []float64
 }
 
-func NewDistributionLearner() *DistributionLearner {
+func NewDistributionLearner(precisionTarget float64, windowSize int) *DistributionLearner {
 	return &DistributionLearner{
-		minVal:    math.Inf(1),
-		maxVal:    math.Inf(-1),
-		quantiles: map[float64]*quantile{0.25: newQuantile(0.25), 0.5: newQuantile(0.5), 0.75: newQuantile(0.75)},
-		randSrc:   rand.New(rand.NewSource(time.Now().UnixNano())),
+		minVal:          math.Inf(1),
+		maxVal:          math.Inf(-1),
+		quantiles:       map[float64]*quantile{0.25: newQuantile(0.25), 0.5: newQuantile(0.5), 0.75: newQuantile(0.75)},
+		randSrc:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		precisionTarget: precisionTarget,
+		windowSize:      windowSize,
+		meanWindow:      make([]float64, windowSize),
 	}
 }
 
@@ -150,6 +154,9 @@ func (dl *DistributionLearner) AddOutcome(outcome float64) {
 
 	dl.mean += delta / float64(dl.count+1)
 	dl.count++
+
+	index := dl.count % dl.windowSize
+	dl.meanWindow[index] = dl.mean
 
 	dl.varM2 += delta * (outcome - dl.mean)
 
@@ -183,7 +190,7 @@ type LearnedSummary struct {
 func (dl *DistributionLearner) Summarize() *LearnedSummary {
 	variance := dl.varM2 / float64(dl.count)
 	return &LearnedSummary{
-		Stable:   dl.stable,
+		Stable:   Range(dl.meanWindow) < dl.precisionTarget,
 		Count:    dl.count,
 		PPF:      float64(dl.failureCount) / float64(dl.count),
 		Mean:     dl.mean,

@@ -15,12 +15,13 @@ import (
 
 func SimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.LearnedSummary {
 	distributionLearners := make([]statistics.DistributionLearner, years)
+	learnedSummaries := make([]statistics.LearnedSummary, years)
 	for year := 0; year < years; year++ {
-		distributionLearners[year] = *statistics.NewDistributionLearner()
+		distributionLearners[year] = *statistics.NewDistributionLearner(precisionTarget, 500)
 	}
 
 	// never run more than a billion sims for now0
-	for sim := 0; sim < 100_000; sim++ {
+	for sim := 0; sim < 10_000_000; sim++ {
 
 		magicAccount := models.NewMagic(&models.SandP500)
 		switch investment {
@@ -46,24 +47,23 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 			}
 
 		}
-		// if sim%10 == 0 {
-		// 	stable := true
-		// 	for year := 0; year < years; year++ {
-		// 		if !outcomeAggregators[year].Stable {
-		// 			stable = false
-		// 		}
-		// 	}
-		// 	if stable {
-		// 		fmt.Println(sim)
-		// 		break
-		// 	}
-		// }
+		if sim%500 == 0 {
+			stable := true
+			for year := 0; year < years; year++ {
+				learnedSummaries[year] = *distributionLearners[year].Summarize()
+				if !learnedSummaries[year].Stable {
+					stable = false
+				}
+			}
+			if stable {
+				fmt.Println(sim)
+				break
+			}
+		}
 	}
 
-	learnedSummaries := make([]statistics.LearnedSummary, years)
 	for year := 0; year < years; year++ {
 		learnedSummaries[year] = *distributionLearners[year].Summarize()
-		fmt.Println(learnedSummaries[year].Q2)
 	}
 
 	return learnedSummaries
