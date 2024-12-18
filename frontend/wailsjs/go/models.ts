@@ -1,69 +1,38 @@
 export namespace statistics {
 	
-	export class OutcomeAggregator {
+	export class LearnedSummary {
+	    Stable: boolean;
 	    Count: number;
-	    FailureCount: number;
-	    Sum: number;
-	    SumOfSquares: number;
-	    PrecisionTarget: number;
-	    WindowSize: number;
-	    MeanWindow: number[];
-	    // Go type: sync
-	    Mu: any;
-	    ppf: number;
-	    mean: number;
-	    variance: number;
-	    min: number;
-	    q1: number;
-	    q2: number;
-	    q3: number;
-	    max: number;
-	    LearningRate: number;
-	    stable: boolean;
+	    PPF: number;
+	    Mean: number;
+	    Variance: number;
+	    Kurtosis: number;
+	    Skewness: number;
+	    Min: number;
+	    Q1: number;
+	    Q2: number;
+	    Q3: number;
+	    Max: number;
 	
 	    static createFrom(source: any = {}) {
-	        return new OutcomeAggregator(source);
+	        return new LearnedSummary(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Stable = source["Stable"];
 	        this.Count = source["Count"];
-	        this.FailureCount = source["FailureCount"];
-	        this.Sum = source["Sum"];
-	        this.SumOfSquares = source["SumOfSquares"];
-	        this.PrecisionTarget = source["PrecisionTarget"];
-	        this.WindowSize = source["WindowSize"];
-	        this.MeanWindow = source["MeanWindow"];
-	        this.Mu = this.convertValues(source["Mu"], null);
-	        this.ppf = source["ppf"];
-	        this.mean = source["mean"];
-	        this.variance = source["variance"];
-	        this.min = source["min"];
-	        this.q1 = source["q1"];
-	        this.q2 = source["q2"];
-	        this.q3 = source["q3"];
-	        this.max = source["max"];
-	        this.LearningRate = source["LearningRate"];
-	        this.stable = source["stable"];
+	        this.PPF = source["PPF"];
+	        this.Mean = source["Mean"];
+	        this.Variance = source["Variance"];
+	        this.Kurtosis = source["Kurtosis"];
+	        this.Skewness = source["Skewness"];
+	        this.Min = source["Min"];
+	        this.Q1 = source["Q1"];
+	        this.Q2 = source["Q2"];
+	        this.Q3 = source["Q3"];
+	        this.Max = source["Max"];
 	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
 	}
 
 }

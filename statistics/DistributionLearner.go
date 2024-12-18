@@ -1,5 +1,7 @@
 package statistics
 
+// https://github.com/cxxr/LiveStats/blob/master/livestats/livestats.py
+
 import (
 	"math"
 	"math/rand"
@@ -7,70 +9,69 @@ import (
 	"time"
 )
 
-// TODO: document and rename
+// TODO: document
+// TODO: add my stabaility window check
 
 func calcP2(qp1, q, qm1, d, np1, n, nm1 float64) float64 {
-	// TODO: asses float conversions
 	outer := d / (np1 - nm1)
-	inner_left := (n - nm1 + d) * (qp1 - q) / (np1 - n)
-	inner_right := (np1 - n - d) * (q - qm1) / (n - nm1)
+	innerLeft := (n - nm1 + d) * (qp1 - q) / (np1 - n)
+	innerRight := (np1 - n - d) * (q - qm1) / (n - nm1)
 
-	return q + outer*(inner_left+inner_right)
+	return q + outer*(innerLeft+innerRight)
 }
 
-const quantile_length int = 5
+const quantileLength int = 5
 
 type quantile struct {
-	dn         []float64
-	npos       []float64
-	pos        []float64
-	heights    []float64
-	initalized bool
-	p          float64
+	dn          []float64
+	npos        []float64
+	pos         []float64
+	heights     []float64
+	initialized bool
+	p           float64
 }
 
 func newQuantile(p float64) *quantile {
-	posRange := [quantile_length + 1]float64{}
-	for i := 0; i < quantile_length+1; i++ {
+	posRange := make([]float64, quantileLength)
+	for i := 0; i < quantileLength; i++ {
 		posRange[i] = float64(i + 1)
 	}
 	return &quantile{
-		dn:         []float64{0, p / 2, p, (1 + p) / 2, 1},
-		npos:       []float64{1, 1 + 2*p, 1 + 4*p, 3 + 2*p, 5},
-		pos:        posRange[:],
-		heights:    []float64{},
-		initalized: false,
-		p:          p,
+		dn:          []float64{0, p / 2, p, (1 + p) / 2, 1},
+		npos:        []float64{1, 1 + 2*p, 1 + 4*p, 3 + 2*p, 5},
+		pos:         posRange,
+		heights:     []float64{},
+		initialized: false,
+		p:           p,
 	}
 }
 
 func (q *quantile) add(outcome float64) {
-	if len(q.heights) != quantile_length {
+	if len(q.heights) < quantileLength {
 		q.heights = append(q.heights, outcome)
 		return
 	}
 
-	if !q.initalized {
+	if !q.initialized {
 		sort.Float64s(q.heights)
-		q.initalized = true
+		q.initialized = true
 	}
 
 	k := -1
 	if outcome < q.heights[0] {
 		q.heights[0] = outcome
-		k = 1
+		k = 0
 	} else {
-		for i := 1; i < quantile_length; i++ {
+		for i := 1; i < quantileLength; i++ {
 			if q.heights[i-1] <= outcome && outcome < q.heights[i] {
 				k = i
 				break
 			}
 		}
-		// TODO: check if this condition functions like a for else
-		if k <= 1 {
-			k = 4
-			if q.heights[len(q.heights)-1] < outcome {
-				q.heights[len(q.heights)-1] = outcome
+		if k == -1 {
+			k = quantileLength - 1
+			if outcome > q.heights[k] {
+				q.heights[k] = outcome
 			}
 		}
 	}
@@ -85,10 +86,11 @@ func (q *quantile) add(outcome float64) {
 		q.npos[i] += q.dn[i]
 	}
 
+	q.adjust()
 }
 
 func (q *quantile) adjust() {
-	for i := 1; i < 4; i++ {
+	for i := 1; i < quantileLength-1; i++ {
 		n := q.pos[i]
 		d := q.npos[i] - n
 
@@ -107,13 +109,13 @@ func (q *quantile) adjust() {
 }
 
 func (q *quantile) quantile() float64 {
-	if q.initalized {
+	if q.initialized {
 		return q.heights[2]
 	}
 
 	sort.Float64s(q.heights)
 	l := float64(len(q.heights))
-	return q.heights[int(min(max(l-1, 0), l*q.p))]
+	return q.heights[int(math.Min(math.Max(l-1, 0), l*q.p))]
 }
 
 type DistributionLearner struct {
@@ -125,7 +127,7 @@ type DistributionLearner struct {
 	mean         float64
 	count        int
 	failureCount int
-	initalized   bool
+	initialized  bool
 	stable       bool
 	quantiles    map[float64]*quantile
 	randSrc      *rand.Rand
@@ -177,22 +179,20 @@ type LearnedSummary struct {
 	Max      float64 `json:"Max"`
 }
 
-func (dl *DistributionLearner) summaize() *LearnedSummary {
-	// TODO: consider saftey checking some of these for being too new to have data
-
+func (dl *DistributionLearner) Summarize() *LearnedSummary {
 	variance := dl.varM2 / float64(dl.count)
 	return &LearnedSummary{
-		Stable:   false,
+		Stable:   dl.stable,
 		Count:    dl.count,
 		PPF:      float64(dl.failureCount) / float64(dl.count),
 		Mean:     dl.mean,
 		Variance: variance,
 		Kurtosis: dl.kurtM4/(float64(dl.count)*math.Pow(variance, 2)) - 3.0,
 		Skewness: dl.skewM3 / (float64(dl.count) * math.Pow(variance, 1.5)),
-		Min:      dl.maxVal,
-		Q1:       dl.quantiles[.25].quantile(),
-		Q2:       dl.quantiles[.5].quantile(),
-		Q3:       dl.quantiles[.75].quantile(),
+		Min:      dl.minVal,
+		Q1:       dl.quantiles[0.25].quantile(),
+		Q2:       dl.quantiles[0.5].quantile(),
+		Q3:       dl.quantiles[0.75].quantile(),
 		Max:      dl.maxVal,
 	}
 }

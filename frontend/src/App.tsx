@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 function App() {
-  const [res, setRes] = useState<statistics.OutcomeAggregator[]>();
+  const [res, setRes] = useState<statistics.LearnedSummary[]>();
   const [precision, setPrecision] = useState<number>(3); // Initial value for precision
   const [yearCount, setYearCount] = useState<number>(1); // Initial value for years
   const [principal, setPrincipal] = useState<number>(1000); // Initial value for years
@@ -135,8 +135,8 @@ function App() {
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
-                q2: [item.q2, item.q2],
-                range: [item.q1, item.q3],
+                q2: [item.Mean, item.Mean],
+                range: [item.Q2, item.Q2],
               })) || []
             }
           >
@@ -147,8 +147,8 @@ function App() {
             <Area
               dataKey="range"
               fill="#4ade80"
-              strokeWidth={0}
-              fillOpacity={0.3}
+              strokeWidth={4}
+              fillOpacity={1}
             />
 
             {/* Line for Q2 (median) */}
@@ -160,7 +160,7 @@ function App() {
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
-                mean: item.ppf,
+                mean: item.PPF,
               })) || []
             }
           >

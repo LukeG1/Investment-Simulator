@@ -4,4 +4,4 @@ import {statistics} from '../models';
 
 export function Greet(arg1:string):Promise<string>;
 
-export function RunSimpleSimulation(arg1:number,arg2:number,arg3:number,arg4:string,arg5:number):Promise<Array<statistics.OutcomeAggregator>>;
+export function RunSimpleSimulation(arg1:number,arg2:number,arg3:number,arg4:string,arg5:number):Promise<Array<statistics.LearnedSummary>>;

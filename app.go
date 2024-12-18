@@ -28,6 +28,6 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-func (a *App) RunSimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.OutcomeAggregator {
+func (a *App) RunSimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.LearnedSummary {
 	return simulation.SimpleSimulation(precisionTarget, years, startingBalance, investment, additional)
 }
