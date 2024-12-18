@@ -4,6 +4,7 @@ import (
 	"InvestmentSimulator/statistics"
 )
 
+// TODO: Something somewhere should probably be called an investment
 type Balance struct {
 	Total          float64
 	yearDeposited  float64
