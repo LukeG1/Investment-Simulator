@@ -3,7 +3,6 @@ package simulation
 import (
 	"InvestmentSimulator/models"
 	"InvestmentSimulator/statistics"
-	"fmt"
 )
 
 // TODO: this is really SimpleInvestmentSimulator
@@ -17,11 +16,11 @@ import (
 func SimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.OutcomeAggregator {
 	outcomeAggregators := make([]statistics.OutcomeAggregator, years)
 	for year := 0; year < years; year++ {
-		outcomeAggregators[year] = *statistics.NewOutcomeAggregator(precisionTarget, 500)
+		outcomeAggregators[year] = *statistics.NewOutcomeAggregator(10, 500)
 	}
 
 	// never run more than a billion sims for now0
-	for sim := 0; sim < 100_000_000; sim++ {
+	for sim := 0; sim < 10_000; sim++ {
 
 		magicAccount := models.NewMagic(&models.SandP500)
 		switch investment {
@@ -47,18 +46,18 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 			}
 
 		}
-		if sim%10 == 0 {
-			stable := true
-			for year := 0; year < years; year++ {
-				if !outcomeAggregators[year].Stable {
-					stable = false
-				}
-			}
-			if stable {
-				fmt.Println(sim)
-				break
-			}
-		}
+		// if sim%10 == 0 {
+		// 	stable := true
+		// 	for year := 0; year < years; year++ {
+		// 		if !outcomeAggregators[year].Stable {
+		// 			stable = false
+		// 		}
+		// 	}
+		// 	if stable {
+		// 		fmt.Println(sim)
+		// 		break
+		// 	}
+		// }
 	}
 
 	return outcomeAggregators
