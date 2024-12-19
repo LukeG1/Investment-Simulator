@@ -54,4 +54,5 @@ Central to an account is a map of string to Investment called Investments. The k
 - [ ] write a function to export SimulationResults as csv
 - [ ] Figure out what a "strategy" looks like
 - [ ] Implement a simulation on a strategy
+- [ ] Optimize a strategy based on fixed inputs
 - [ ] ???
