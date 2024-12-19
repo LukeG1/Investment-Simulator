@@ -1,5 +1,7 @@
 package statistics
 
+// TODO: delete soon
+
 import (
 	"sync"
 )

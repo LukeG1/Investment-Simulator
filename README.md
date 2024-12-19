@@ -34,3 +34,24 @@ Economic factors are some kind of historically informed influence on the simulat
 The Account is really central to this project, since it's kind of the lowest level construct. An Account is implmeented like an abstract class, and can be used to represent anything from a high yield savings account or a Roth IRA, to a mortgage. The abstract nature of an account means that a new one can be added with as little boilerplate as possible. The current version can be implemented with just an AllowedContribution function, that informs the inner abstract account's deposit function. A similar strategy will be used later in withdrawals. This strategy also let me make a deposit function `account.Deposit(economicFactor string, amount float64)` which works for any account.
 
 Central to an account is a map of string to Investment called Investments. The key in that map is the name of the economic factor the investment is in, and the investment itself has data like the balance, year's stats, and a refrence to the economic factor that is shared among all accounts. This mean's an account like the HYSA can have an investment in 'cash', a RothIRA can have one in stocks and bonds, and a mortgage can have on in the housing market. The allowed economic factors for an account are defined on creation.
+
+# Current Todo List:
+
+- [x] Move historic data to it's own package and refactor EconomicFactors
+- [ ] Flesh out SimulationResults structure
+- [ ] Implement SimulationResults in SimpleSimulation
+- [ ] Make SimpleSimulation anynchronus with periodic polling of current SimulationResults
+- [ ] Display live stability check as the simulation runs
+- [ ] Find a easier frontend UI library
+- [ ] Write actual tests for existing code
+- [ ] Remove dead code
+- [ ] Flesh out Household / HouseholdFactors
+- [ ] Consider go routines
+- [ ] Replace hardcoded historic data with modular config of some kind? start with SQLLite
+- [ ] Implement more accounts
+- [ ] Implement taxes
+- [ ] Implement social security
+- [ ] write a function to export SimulationResults as csv
+- [ ] Figure out what a "strategy" looks like
+- [ ] Implement a simulation on a strategy
+- [ ] ???

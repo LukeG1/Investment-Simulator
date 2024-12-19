@@ -152,7 +152,10 @@ function App() {
               fillOpacity={0.3}
             />
 
-            {/* Line for Q2 (median) */}
+            {/* 
+            Line for Q2 (median) 
+            TODO: add a mean median switch (3 way show both?)
+            */}
             <Area
               animationDuration={100}
               dataKey="q2"

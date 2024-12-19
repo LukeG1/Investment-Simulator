@@ -11,6 +11,7 @@ import (
 )
 
 // TODO: document
+// TODO: refactor stability check to struct that can be applied to multiple metrics using delta of ewma
 
 func calcP2(qp1, q, qm1, d, np1, n, nm1 float64) float64 {
 	outer := d / (np1 - nm1)

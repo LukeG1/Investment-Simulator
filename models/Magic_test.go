@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -14,12 +13,12 @@ func newTestEconomicFactor(name string, rate float64) *EconomicFactor {
 }
 
 func TestNewMagic(t *testing.T) {
-	magicAccount := NewMagic(&SandP500)
+	// magicAccount := NewMagic(&SandP500)
 
-	magicAccount.Deposit("market", 100)
-	magicAccount.Accrue()
+	// magicAccount.Deposit("market", 100)
+	// magicAccount.Accrue()
 
-	fmt.Println(magicAccount.Balances["market"].Total)
+	// fmt.Println(magicAccount.Balances["market"].Total)
 
 	// Assert
 	// if magicAccount == nil {
