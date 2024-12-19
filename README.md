@@ -42,7 +42,8 @@ Central to an account is a map of string to Investment called Investments. The k
 - [ ] Implement SimulationResults in SimpleSimulation
 - [ ] Make SimpleSimulation anynchronus with periodic polling of current SimulationResults
 - [ ] Display live stability check as the simulation runs
-- [ ] Find a easier frontend UI library
+- [ ] Find an easier frontend UI library (MUI?)
+- [ ] Figure out a basic UI
 - [ ] Write actual tests for existing code
 - [ ] Remove dead code
 - [ ] Flesh out Household / HouseholdFactors
