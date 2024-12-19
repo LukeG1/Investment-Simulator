@@ -42,7 +42,7 @@ function App() {
   }
 
   return (
-    <div className="font-mono w-full h-[100vh] bg-slate-200 text-slate-900 flex flex-row">
+    <div className="font-mono w-full h-[100vh] bg-slate-100 text-slate-900 flex flex-row">
       <div className="flex flex-col w-1/3 border-r-2 border-slate-400 h-100% justify-between">
         <div className="flex flex-col justify-start">
           <h1 className="text-lg divide-x-2 pt-2 pb-2 border-b-2 border-slate-500">
@@ -129,20 +129,30 @@ function App() {
           </button>
         </div>
       </div>
-      <div className="w-2/3 h-full pt-8 flex flex-col">
-        <ResponsiveContainer width="90%" height="50%">
+      <div className="w-2/3 h-full pt-8 flex flex-col pl-8 overflow-visible">
+        <ResponsiveContainer width="95%" height="50%">
           <AreaChart
+            margin={{ right: 20 }}
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
                 q2: [item.Q2, item.Q2],
                 range: [item.Q1, item.Q3],
+                // zero: [0, 0],
               })) || []
             }
           >
             <CartesianGrid stroke="#ccc" />
             <XAxis dataKey="name" />
-            <YAxis />
+            <YAxis
+              orientation="right"
+              tickFormatter={(tick) => {
+                return `$${tick
+                  .toString()
+                  .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+              }}
+              domain={[0, "auto"]}
+            />
             {/* Shaded area between Q1 and Q3 */}
             <Area
               animationDuration={100}
@@ -168,10 +178,17 @@ function App() {
                 strokeDasharray: "",
               }}
             />
+            {/* <Area
+              animationDuration={100}
+              dataKey="zero"
+              stroke="#292929"
+              strokeWidth={2}
+            /> */}
           </AreaChart>
         </ResponsiveContainer>
-        <ResponsiveContainer width="90%" height="50%">
+        <ResponsiveContainer width="95%" height="50%">
           <LineChart
+            margin={{ right: 20 }}
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
@@ -179,10 +196,22 @@ function App() {
               })) || []
             }
           >
-            <Line type="monotone" dataKey="mean" stroke="#8884d8" />
+            <Line
+              type="monotone"
+              dataKey="mean"
+              stroke="#8884d8"
+              animationDuration={100}
+            />
             <CartesianGrid stroke="#ccc" />
             <XAxis dataKey="name" />
-            <YAxis max={1} min={0} />
+            <YAxis
+              orientation="right"
+              type="number"
+              domain={[0, 1]}
+              tickFormatter={(tick) => {
+                return `${tick}%`;
+              }}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
