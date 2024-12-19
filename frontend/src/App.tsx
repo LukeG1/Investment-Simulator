@@ -129,14 +129,14 @@ function App() {
           </button>
         </div>
       </div>
-      <div className="w-2/3 h-full pt-8">
+      <div className="w-2/3 h-full pt-8 flex flex-col">
         <ResponsiveContainer width="90%" height="50%">
           <AreaChart
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
-                q2: [item.Mean, item.Mean],
-                range: [item.Q2, item.Q2],
+                q2: [item.Q2, item.Q2],
+                range: [item.Q1, item.Q3],
               })) || []
             }
           >
@@ -145,14 +145,26 @@ function App() {
             <YAxis />
             {/* Shaded area between Q1 and Q3 */}
             <Area
+              animationDuration={100}
               dataKey="range"
               fill="#4ade80"
-              strokeWidth={4}
-              fillOpacity={1}
+              strokeWidth={0}
+              fillOpacity={0.3}
             />
 
             {/* Line for Q2 (median) */}
-            <Area dataKey="q2" stroke="#16a34a" strokeWidth={4} />
+            <Area
+              animationDuration={100}
+              dataKey="q2"
+              stroke="#16a34a"
+              strokeWidth={4}
+              dot={{
+                stroke: "#16a34a",
+                strokeWidth: 3,
+                r: 3,
+                strokeDasharray: "",
+              }}
+            />
           </AreaChart>
         </ResponsiveContainer>
         <ResponsiveContainer width="90%" height="50%">
