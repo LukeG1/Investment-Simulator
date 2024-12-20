@@ -1,3 +1,7 @@
+# How to run
+
+...
+
 # Goals
 
 The objective with this project is to asses household investment strategies in their statistical context. That means instead of simply looking at the mean return for a given investment, like an online calculator or many of the axioms you hear about would, you asses all potiental outcomes as a distribution. I plan to achieve this with Monte Carlo Simulation to collect a sample of outcomes for any 'query'. This allows us to consider what I see as the most important statistics for a lifelong investment strategy: the Probability of Portfolio Failure $P(balance ≤ 0)$@life_expectancy (hereby refered to as PPF). This metric can then be used to optmize what I see as a rational investment strategy based on a users abilities and needs, setting aside the notion of risk tollerance.
