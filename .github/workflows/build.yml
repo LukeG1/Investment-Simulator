@@ -3,7 +3,7 @@ name: Wails build
 on:
   push:
     branches:
-      - Main
+      - main
 
 jobs:
   build:
