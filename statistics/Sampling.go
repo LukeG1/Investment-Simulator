@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+// TODO: make my naming scheme for statistical concepts more consistent
+
 type NaieveDataSampler struct {
 	data  *[]float64 // the raw data
 	h     float64    // bandwidth

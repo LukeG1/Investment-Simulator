@@ -17,7 +17,7 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 	distributionLearners := make([]statistics.DistributionLearner, years)
 	learnedSummaries := make([]statistics.LearnedSummary, years)
 	for year := 0; year < years; year++ {
-		distributionLearners[year] = *statistics.NewDistributionLearner(precisionTarget, 500)
+		distributionLearners[year] = *statistics.NewDistributionLearner(precisionTarget)
 	}
 
 	// never run more than a billion sims for now0
@@ -65,6 +65,8 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 	for year := 0; year < years; year++ {
 		learnedSummaries[year] = *distributionLearners[year].Summarize()
 	}
+
+	fmt.Println(learnedSummaries[years-1].Mean)
 
 	return learnedSummaries
 }

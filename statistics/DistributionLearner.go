@@ -12,6 +12,12 @@ import (
 
 // TODO: document
 // TODO: refactor stability check to struct that can be applied to multiple metrics using delta of ewma
+// TODO: stability checker based on rate of change of ewma, what if your random values happen to be the
+// same twice in a row, it would come as stable, wait for n iterations minimum to be stable? use a small
+// window? other solution?
+
+const quantileLength int = 5
+const minimumIterations int = 30
 
 func calcP2(qp1, q, qm1, d, np1, n, nm1 float64) float64 {
 	outer := d / (np1 - nm1)
@@ -20,8 +26,6 @@ func calcP2(qp1, q, qm1, d, np1, n, nm1 float64) float64 {
 
 	return q + outer*(innerLeft+innerRight)
 }
-
-const quantileLength int = 5
 
 type quantile struct {
 	dn          []float64
@@ -119,6 +123,50 @@ func (q *quantile) quantile() float64 {
 	return q.heights[int(math.Min(math.Max(l-1, 0), l*q.p))]
 }
 
+type StabilityChecker struct {
+	ewma            float64
+	alpha           float64 // Smoothing factor
+	precisionTarget float64
+	stable          bool
+	count           int
+	lastDelta       float64
+}
+
+// NewStabilityChecker creates a new StabilityChecker with a specified precision target
+// and an optional smoothing factor (alpha). If alpha is zero, it defaults to 2/(n+1).
+func NewStabilityChecker(precisionTarget float64, alpha float64) *StabilityChecker {
+	if alpha <= 0 || alpha > 1 {
+		alpha = 0.0 // Default to dynamic alpha calculation
+	}
+	return &StabilityChecker{
+		precisionTarget: precisionTarget,
+		alpha:           alpha,
+	}
+}
+
+// Update processes a new value and updates EWMA and stability status
+func (sc *StabilityChecker) Update(value float64) {
+	sc.count++
+
+	// Calculate smoothing factor dynamically for the first few samples if alpha is not set
+	if sc.alpha == 0 {
+		sc.alpha = 2.0 / (float64(sc.count) + 1.0)
+	}
+
+	// Update EWMA using the smoothing factor
+	oldEwma := sc.ewma
+	sc.ewma = sc.alpha*value + (1-sc.alpha)*sc.ewma
+
+	// Check stability: compare delta with the precision target
+	delta := math.Abs(sc.ewma - oldEwma)
+	sc.lastDelta = delta
+	if sc.count > 1 && delta < sc.precisionTarget {
+		sc.stable = true
+	} else {
+		sc.stable = false
+	}
+}
+
 type DistributionLearner struct {
 	minVal          float64
 	maxVal          float64
@@ -128,23 +176,27 @@ type DistributionLearner struct {
 	mean            float64
 	count           int
 	failureCount    int
-	initialized     bool
 	quantiles       map[float64]*quantile
 	randSrc         *rand.Rand
 	precisionTarget float64
-	windowSize      int
-	meanWindow      []float64
+	// windowSize      int
+	// meanWindow      []float64
+	meanStability *StabilityChecker
+	ppfStability  *StabilityChecker
 }
 
-func NewDistributionLearner(precisionTarget float64, windowSize int) *DistributionLearner {
+// TODO: should I really be looking at a window of the varaince of the estimates
+func NewDistributionLearner(precisionTarget float64) *DistributionLearner {
 	return &DistributionLearner{
 		minVal:          math.Inf(1),
 		maxVal:          math.Inf(-1),
 		quantiles:       map[float64]*quantile{0.25: newQuantile(0.25), 0.5: newQuantile(0.5), 0.75: newQuantile(0.75)},
 		randSrc:         rand.New(rand.NewSource(time.Now().UnixNano())),
 		precisionTarget: precisionTarget,
-		windowSize:      windowSize,
-		meanWindow:      make([]float64, windowSize),
+		// windowSize:      windowSize,
+		// meanWindow:      make([]float64, windowSize),
+		meanStability: NewStabilityChecker(precisionTarget, .05),
+		ppfStability:  NewStabilityChecker(.01/100., 0),
 	}
 }
 
@@ -156,10 +208,17 @@ func (dl *DistributionLearner) AddOutcome(outcome float64) {
 	dl.mean += delta / float64(dl.count+1)
 	dl.count++
 
-	index := dl.count % dl.windowSize
-	dl.meanWindow[index] = dl.mean
+	// index := dl.count % dl.windowSize
+	// dl.meanWindow[index] = dl.mean
 
 	dl.varM2 += delta * (outcome - dl.mean)
+
+	if outcome < 0 {
+		dl.failureCount++
+	}
+
+	dl.meanStability.Update(outcome)
+	dl.ppfStability.Update(float64(dl.failureCount) / float64(dl.count))
 
 	for _, q := range dl.quantiles {
 		q.add(outcome)
@@ -167,10 +226,6 @@ func (dl *DistributionLearner) AddOutcome(outcome float64) {
 
 	dl.kurtM4 += math.Pow(outcome-dl.mean, 4)
 	dl.skewM3 += math.Pow(outcome-dl.mean, 3)
-
-	if outcome < 0 {
-		dl.failureCount++
-	}
 }
 
 type LearnedSummary struct {
@@ -191,7 +246,7 @@ type LearnedSummary struct {
 func (dl *DistributionLearner) Summarize() *LearnedSummary {
 	variance := dl.varM2 / float64(dl.count)
 	return &LearnedSummary{
-		Stable:   Range(dl.meanWindow) < dl.precisionTarget,
+		Stable:   dl.count > minimumIterations && dl.meanStability.stable,
 		Count:    dl.count,
 		PPF:      float64(dl.failureCount) / float64(dl.count),
 		Mean:     dl.mean,
