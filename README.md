@@ -58,4 +58,7 @@ Central to an account is a map of string to Investment called Investments. The k
 - [ ] Figure out what a "strategy" looks like
 - [ ] Implement a simulation on a strategy
 - [ ] Optimize a strategy based on fixed inputs
-- [ ] ???
+- [ ] add a how to set up in the readme
+- [ ] split into dev and main branch
+- [ ] add release pipeline to main branch
+- [ ] favicon
