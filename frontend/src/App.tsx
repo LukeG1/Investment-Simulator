@@ -50,6 +50,7 @@ function App() {
           </h1>
           <div className="flex flex-col border-b-2 pt-2 pb-2 border-slate-500">
             <h2 className="pb-2">
+              {/* reword for confidence intervals */}
               precise down to {precisionOptions[precision]} dollars
             </h2>
             <input

@@ -2,6 +2,7 @@ export namespace statistics {
 	
 	export class LearnedSummary {
 	    Stable: boolean;
+	    Stability: number;
 	    Count: number;
 	    PPF: number;
 	    Mean: number;
@@ -21,6 +22,7 @@ export namespace statistics {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.Stable = source["Stable"];
+	        this.Stability = source["Stability"];
 	        this.Count = source["Count"];
 	        this.PPF = source["PPF"];
 	        this.Mean = source["Mean"];
