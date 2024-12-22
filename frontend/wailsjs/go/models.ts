@@ -1,6 +1,7 @@
 export namespace simulation {
 	
 	export class AccountResults {
+	    Name: string;
 	    InvestmentResults: {[key: string]: statistics.LearnedSummary};
 	
 	    static createFrom(source: any = {}) {
@@ -9,6 +10,7 @@ export namespace simulation {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Name = source["Name"];
 	        this.InvestmentResults = this.convertValues(source["InvestmentResults"], statistics.LearnedSummary, true);
 	    }
 	

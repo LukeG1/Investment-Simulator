@@ -2,7 +2,6 @@ package main
 
 import (
 	"InvestmentSimulator/simulation"
-	"InvestmentSimulator/statistics"
 	"context"
 	"fmt"
 )
@@ -30,11 +29,12 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-func (a *App) RunSimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.LearnedSummary {
-	activeSimulation = simulation.NewSimulationResult()
-	return simulation.SimpleSimulation(activeSimulation, precisionTarget, years, startingBalance, investment, additional)
+func (a *App) RunSimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) {
+	activeSimulation = simulation.NewSimulationResult(years)
+	simulation.SimpleSimulation(activeSimulation, precisionTarget, years, startingBalance, investment, additional)
 }
 
+// TODO: add a cancel button?
 func (a *App) CheckResults() simulation.SimulationResult {
 	return *activeSimulation
 }

@@ -4,32 +4,30 @@ import (
 	"InvestmentSimulator/statistics"
 )
 
-// years = [
-//     accounts = [
-//         account = {
-//             investment: summary
-//             ...,
-//         }
-//         ...,
-//     ]
-//     ...,
-// ]
-
 type SimulationResult struct {
 	YearlyResults      []AccountResults `json:"YearlyResults"`
 	TotalSims          int              `json:"TotalSims"`
 	SimulationDuration int64            `json:"SimulationDuration"`
+	// Cancel             bool             `json:"Cancel"`
 	// more metadata needed?
 }
 
 type AccountResults struct {
+	Name string
 	// wails wont let me make this a pointer even though I think it should be
 	InvestmentResults map[string]statistics.LearnedSummary `json:"InvestmentResults"`
 }
 
-func NewSimulationResult() *SimulationResult {
+func NewSimulationResult(years int) *SimulationResult {
 	return &SimulationResult{
-		YearlyResults: []AccountResults{},
+		YearlyResults: make([]AccountResults, years),
+	}
+}
+
+func NewAccountResults(name string) *AccountResults {
+	return &AccountResults{
+		Name:              name,
+		InvestmentResults: make(map[string]statistics.LearnedSummary),
 	}
 }
 

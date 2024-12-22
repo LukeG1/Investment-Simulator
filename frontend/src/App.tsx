@@ -49,10 +49,9 @@ function App() {
       principal,
       investment,
       additional
-    ).then((result) => {
-      setRes(result);
+    ).then(() => {
       updateResults();
-      setIsLoading(false); // Set loading to false when simulation is done
+      setIsLoading(false);
     });
   }
 
@@ -60,6 +59,10 @@ function App() {
     let results = await CheckResults();
     setTotalSims(results.TotalSims);
     setSimulationDuration(results.SimulationDuration);
+    const innermostObjects = results.YearlyResults.map(
+      (item) => item.InvestmentResults[investment]
+    );
+    setRes(innermostObjects);
   }
 
   //TODO: ensure results get checked at least once
@@ -150,7 +153,7 @@ function App() {
           </div>
           {/* TODO: only if isActive */}
           <div className="flex flex-col align-top text-start pt-2 pb-2 pl-4 border-b-2 border-slate-500">
-            <h3>Status</h3>
+            <h3 className="text-lg">Status</h3>
             <div>
               <p>
                 Total Sims: {new Intl.NumberFormat("en-US").format(TotalSims)}
@@ -163,6 +166,20 @@ function App() {
                   : formatDuration(
                       (SimulationDuration / TotalSims) * 10_000_000
                     )}
+              </p>
+
+              <p>
+                Final Median:{" "}
+                {res
+                  ? "$" +
+                    new Intl.NumberFormat("en-US").format(
+                      Math.round(res[res.length - 1].Q2)
+                    )
+                  : "$0"}
+              </p>
+              <p>
+                Final Stability:{" "}
+                {res ? "$" + res[res.length - 1].Stability.toFixed(2) : "$0.00"}
               </p>
             </div>
           </div>
@@ -184,18 +201,36 @@ function App() {
       <div className="w-2/3 h-full pt-8 flex flex-col pl-8 overflow-visible">
         <ResponsiveContainer width="95%" height="50%">
           <AreaChart
-            margin={{ right: 20 }}
+            margin={{ right: 30 }}
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
                 q2: [item.Q2, item.Q2],
                 range: [item.Q1, item.Q3],
-                // zero: [0, 0],
               })) || []
             }
           >
             <CartesianGrid stroke="#ccc" />
-            <XAxis dataKey="name" />
+
+            <XAxis
+              dataKey="name"
+              tick={(tickProps) => {
+                const { x, y, payload, index } = tickProps;
+                const isStable = res?.[index]?.Stable; // Access the 'Stable' field
+
+                return (
+                  <text
+                    x={x}
+                    y={y + 15} // Adjust the vertical position
+                    fill={isStable ? "#16a34a" : "#ff0000"} // Green for stable, red for unstable
+                    textAnchor="middle"
+                  >
+                    {payload.value}
+                  </text>
+                );
+              }}
+            />
+
             <YAxis
               orientation="right"
               tickFormatter={(tick) => {
@@ -230,17 +265,11 @@ function App() {
                 strokeDasharray: "",
               }}
             />
-            {/* <Area
-              animationDuration={100}
-              dataKey="zero"
-              stroke="#292929"
-              strokeWidth={2}
-            /> */}
           </AreaChart>
         </ResponsiveContainer>
         <ResponsiveContainer width="95%" height="50%">
           <LineChart
-            margin={{ right: 20 }}
+            margin={{ right: 30 }}
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
@@ -261,7 +290,7 @@ function App() {
               type="number"
               domain={[0, 1]}
               tickFormatter={(tick) => {
-                return `${tick}%`;
+                return `${Math.round(tick * 100)}%`;
               }}
             />
           </LineChart>
@@ -274,5 +303,4 @@ function App() {
 // TODO:
 // take multiple investments at the same time
 // include more than exist right now like real estate or gold
-// use websockets to get more clear commmunication and stop early / see live results
 export default App;

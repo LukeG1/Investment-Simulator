@@ -3,27 +3,22 @@ package simulation
 import (
 	"InvestmentSimulator/models"
 	"InvestmentSimulator/statistics"
-	"fmt"
 	"time"
 )
 
-// TODO: this is really SimpleInvestmentSimulator
-// use a magic account that can take any combination of investments with any starting value and any yearly contribution
-// precision target: .01, .1, 1, 10, 100, 1000
-// send request, let data stabalize, return each outcome accumulators values
-// multihread
-// would be nice to somehow send a periodic snapshot to the frontend of the stablization progress
-
-func SimpleSimulation(results *SimulationResult, precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.LearnedSummary {
+// TODO: multihread
+func SimpleSimulation(results *SimulationResult, precisionTarget float64, years int, startingBalance float64, investment string, additional float64) {
 	distributionLearners := make([]statistics.DistributionLearner, years)
-	learnedSummaries := make([]statistics.LearnedSummary, years)
+
 	for year := 0; year < years; year++ {
 		distributionLearners[year] = *statistics.NewDistributionLearner(precisionTarget)
+		accountResults := *NewAccountResults("magic")
+		results.YearlyResults[year] = accountResults
 	}
 
 	startTime := time.Now().Unix()
 
-	// never run more than a billion sims for now0
+	// never run more than a 10 million sims for now
 	for sim := 0; sim < 10_000_000; sim++ {
 
 		magicAccount := models.NewMagic(&models.SandP500)
@@ -51,15 +46,15 @@ func SimpleSimulation(results *SimulationResult, precisionTarget float64, years 
 
 		}
 
-		// TODO: consider moving this to the incremental checker
 		results.TotalSims++
 		results.SimulationDuration = time.Now().Unix() - startTime
 
-		if sim%500 == 0 {
+		if sim%2_000 == 0 {
 			stable := true
 			for year := 0; year < years; year++ {
-				learnedSummaries[year] = *distributionLearners[year].Summarize()
-				if !learnedSummaries[year].Stable {
+				summary := *distributionLearners[year].Summarize()
+				results.YearlyResults[year].InvestmentResults[investment] = summary
+				if !summary.Stable {
 					stable = false
 				}
 			}
@@ -70,10 +65,7 @@ func SimpleSimulation(results *SimulationResult, precisionTarget float64, years 
 	}
 
 	for year := 0; year < years; year++ {
-		learnedSummaries[year] = *distributionLearners[year].Summarize()
+		summary := *distributionLearners[year].Summarize()
+		results.YearlyResults[year].InvestmentResults[investment] = summary
 	}
-
-	fmt.Println(learnedSummaries[years-1].Mean)
-
-	return learnedSummaries
 }
