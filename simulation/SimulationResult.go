@@ -15,17 +15,24 @@ import (
 //     ...,
 // ]
 
-type SimulationResults struct {
+type SimulationResult struct {
 	YearlyResults      []AccountResults `json:"YearlyResults"`
 	TotalSims          int              `json:"TotalSims"`
-	SimulationDuration float64          `json:"SimulationDuration"`
+	SimulationDuration int64            `json:"SimulationDuration"`
 	// more metadata needed?
 }
 
 type AccountResults struct {
-	InvestmentResults map[string]*statistics.LearnedSummary `json:"InvestmentResults"`
+	// wails wont let me make this a pointer even though I think it should be
+	InvestmentResults map[string]statistics.LearnedSummary `json:"InvestmentResults"`
 }
 
-func (sr *SimulationResults) ExportCSV(exportPath string) {
+func NewSimulationResult() *SimulationResult {
+	return &SimulationResult{
+		YearlyResults: []AccountResults{},
+	}
+}
+
+func (sr *SimulationResult) ExportCSV(exportPath string) {
 	// year | account | investment | stats...
 }

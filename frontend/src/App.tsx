@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { RunSimpleSimulation } from "../wailsjs/go/main/App";
-import { statistics } from "../wailsjs/go/models";
+import { useEffect, useState } from "react";
+import { RunSimpleSimulation, CheckResults } from "../wailsjs/go/main/App";
+import { simulation, statistics } from "../wailsjs/go/models";
 import {
   Area,
   AreaChart,
@@ -21,10 +21,24 @@ function App() {
   const [investment, setInvestment] = useState<string>("market"); // Initial value for years
   const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
 
+  const [TotalSims, setTotalSims] = useState(0);
+  const [SimulationDuration, setSimulationDuration] = useState(0);
+  const intervalTime = 100; // Set your interval time in milliseconds
+
   const precisionOptions = [0.01, 0.1, 1, 10, 100, 1000, 10000];
 
   const handlePrecisionChange = (event: any) => {
     setPrecision(event.target.value);
+  };
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+      2,
+      "0"
+    )}:${String(secs).padStart(2, "0")}`;
   };
 
   function doRunSimpleSimulation() {
@@ -37,9 +51,28 @@ function App() {
       additional
     ).then((result) => {
       setRes(result);
+      updateResults();
       setIsLoading(false); // Set loading to false when simulation is done
     });
   }
+
+  async function updateResults() {
+    let results = await CheckResults();
+    setTotalSims(results.TotalSims);
+    setSimulationDuration(results.SimulationDuration);
+  }
+
+  //TODO: ensure results get checked at least once
+  useEffect(() => {
+    if (!isLoading) return; // Stop interval when `isLoading` is false
+
+    const intervalId = setInterval(async () => {
+      await updateResults();
+    }, intervalTime);
+
+    // Cleanup the interval when `isLoading` becomes false or on unmount
+    return () => clearInterval(intervalId);
+  }, [isLoading, intervalTime]);
 
   return (
     <div className="font-mono w-full h-[100vh] bg-slate-100 text-slate-900 flex flex-row">
@@ -114,6 +147,24 @@ function App() {
               <option value="market">Market</option>
               <option value="bonds">Bonds</option>
             </select>
+          </div>
+          {/* TODO: only if isActive */}
+          <div className="flex flex-col align-top text-start pt-2 pb-2 pl-4 border-b-2 border-slate-500">
+            <h3>Status</h3>
+            <div>
+              <p>
+                Total Sims: {new Intl.NumberFormat("en-US").format(TotalSims)}
+              </p>
+              <p>Sim Duration: {formatDuration(SimulationDuration)}</p>
+              <p>
+                10,000,000 Sims:{" "}
+                {TotalSims === 0
+                  ? "00:00:00"
+                  : formatDuration(
+                      (SimulationDuration / TotalSims) * 10_000_000
+                    )}
+              </p>
+            </div>
           </div>
         </div>
         <div className="flex flex-col justify-end">

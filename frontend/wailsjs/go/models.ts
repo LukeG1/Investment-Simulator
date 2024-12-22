@@ -1,3 +1,72 @@
+export namespace simulation {
+	
+	export class AccountResults {
+	    InvestmentResults: {[key: string]: statistics.LearnedSummary};
+	
+	    static createFrom(source: any = {}) {
+	        return new AccountResults(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.InvestmentResults = this.convertValues(source["InvestmentResults"], statistics.LearnedSummary, true);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class SimulationResult {
+	    YearlyResults: AccountResults[];
+	    TotalSims: number;
+	    SimulationDuration: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new SimulationResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.YearlyResults = this.convertValues(source["YearlyResults"], AccountResults);
+	        this.TotalSims = source["TotalSims"];
+	        this.SimulationDuration = source["SimulationDuration"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace statistics {
 	
 	export class LearnedSummary {

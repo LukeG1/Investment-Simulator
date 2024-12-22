@@ -4,6 +4,7 @@ import (
 	"InvestmentSimulator/models"
 	"InvestmentSimulator/statistics"
 	"fmt"
+	"time"
 )
 
 // TODO: this is really SimpleInvestmentSimulator
@@ -13,12 +14,14 @@ import (
 // multihread
 // would be nice to somehow send a periodic snapshot to the frontend of the stablization progress
 
-func SimpleSimulation(precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.LearnedSummary {
+func SimpleSimulation(results *SimulationResult, precisionTarget float64, years int, startingBalance float64, investment string, additional float64) []statistics.LearnedSummary {
 	distributionLearners := make([]statistics.DistributionLearner, years)
 	learnedSummaries := make([]statistics.LearnedSummary, years)
 	for year := 0; year < years; year++ {
 		distributionLearners[year] = *statistics.NewDistributionLearner(precisionTarget)
 	}
+
+	startTime := time.Now().Unix()
 
 	// never run more than a billion sims for now0
 	for sim := 0; sim < 10_000_000; sim++ {
@@ -47,6 +50,11 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 			}
 
 		}
+
+		// TODO: consider moving this to the incremental checker
+		results.TotalSims++
+		results.SimulationDuration = time.Now().Unix() - startTime
+
 		if sim%500 == 0 {
 			stable := true
 			for year := 0; year < years; year++ {
@@ -56,7 +64,6 @@ func SimpleSimulation(precisionTarget float64, years int, startingBalance float6
 				}
 			}
 			if stable {
-				fmt.Println(sim)
 				break
 			}
 		}
