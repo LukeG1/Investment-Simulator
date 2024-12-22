@@ -21,7 +21,7 @@ function App() {
   const [investment, setInvestment] = useState<string>("market"); // Initial value for years
   const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
 
-  const precisionOptions = [0.01, 0.1, 1, 10, 100, 1000];
+  const precisionOptions = [0.01, 0.1, 1, 10, 100, 1000, 10000];
 
   const handlePrecisionChange = (event: any) => {
     setPrecision(event.target.value);
@@ -57,14 +57,14 @@ function App() {
               className="h-2 pb-0 mb-0 mx-6 bg-slate-500 rounded-lg appearance-none cursor-pointer text-green-500"
               type="range"
               min="0"
-              max="5"
+              max="6"
               step="1"
               value={precision}
               onChange={handlePrecisionChange}
             />
             <div className="flex flex-row justify-between m-4">
               <h3>{0.01}</h3>
-              <h3>{1000}</h3>
+              <h3>{"10,000"}</h3>
             </div>
           </div>
           <div className="flex flex-col align-top text-start pt-2 pb-2 pl-4 border-b-2 border-slate-500">
