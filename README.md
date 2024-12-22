@@ -46,7 +46,7 @@ Central to an account is a map of string to Investment called Investments. The k
 - [ ] Flesh out SimulationResults structure
 - [ ] Implement SimulationResults in SimpleSimulation
 - [ ] Make SimpleSimulation anynchronus with periodic polling of current SimulationResults
-- [ ] Switch stability metric to modular EWMA delta
+- [x] Switch stability metric to standard error of mean of guesses
 - [ ] Display live stability check as the simulation runs
 - [ ] Find an easier frontend UI library (MUI?)
 - [ ] Figure out a basic UI
