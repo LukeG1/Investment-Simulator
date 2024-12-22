@@ -12,7 +12,6 @@ import (
 //         }
 //         ...,
 //     ]
-//
 //     ...,
 // ]
 
@@ -24,9 +23,9 @@ type SimulationResults struct {
 }
 
 type AccountResults struct {
-	InvestmentResults map[string]*statistics.LearnedSummary `InvestmentResults:"InvestmentResults"`
+	InvestmentResults map[string]*statistics.LearnedSummary `json:"InvestmentResults"`
 }
 
-func (sr *SimulationResults) toCSV(exportPath string) {
+func (sr *SimulationResults) ExportCSV(exportPath string) {
 	// year | account | investment | stats...
 }
