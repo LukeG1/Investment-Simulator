@@ -1,15 +1,11 @@
 package models
 
-import (
-	"InvestmentSimulator/statistics"
-)
-
 type Investment struct {
 	Balance        float64
 	yearDeposited  float64
 	yearWithdrawn  float64
 	economicFactor *EconomicFactor
-	accumulator    *statistics.OutcomeAggregator
+	// TODO: eventually I could link an outcome aggregator here that would addOutcome on accrue, could be cleaner
 }
 
 func (investment *Investment) deposit(amount float64) {

@@ -34,3 +34,8 @@ func NewAccountResults(name string) *AccountResults {
 func (sr *SimulationResult) ExportCSV(exportPath string) {
 	// year | account | investment | stats...
 }
+
+// next steps:
+// remove dead code
+// unit test existing code
+// cancel button

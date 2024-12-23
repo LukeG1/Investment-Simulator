@@ -151,7 +151,6 @@ function App() {
               <option value="bonds">Bonds</option>
             </select>
           </div>
-          {/* TODO: only if isActive */}
           <div className="flex flex-col align-top text-start pt-2 pb-2 pl-4 border-b-2 border-slate-500">
             <h3 className="text-lg">Status</h3>
             <div>
@@ -212,6 +211,7 @@ function App() {
           >
             <CartesianGrid stroke="#ccc" />
 
+            {/* TODO: axis colors are sometimes out of sync with labeled stability */}
             <XAxis
               dataKey="name"
               tick={(tickProps) => {
