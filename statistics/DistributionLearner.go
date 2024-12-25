@@ -130,6 +130,7 @@ type StabilityChecker struct {
 	variance        float64
 	precisionTarget float64
 	Stability       float64
+	Confidence      float64
 	Stable          bool
 }
 
@@ -144,8 +145,15 @@ func (sc *StabilityChecker) Update(value float64) {
 	delta := value - sc.mean
 	sc.mean += delta / float64(sc.n)
 	sc.variance += delta * (value - sc.mean)
+	standardError := math.Sqrt(sc.variance / float64(sc.n))
 	sc.Stability = cI * math.Sqrt(sc.variance/float64(sc.n))
 	sc.Stable = sc.n > minimumIterations && sc.Stability < sc.precisionTarget
+
+	sc.Confidence = 0
+	if standardError > 0 {
+		zScore := sc.precisionTarget / standardError
+		sc.Confidence = 2 * (0.5 - math.Abs(0.5-math.Erf(zScore/math.Sqrt2)/2))
+	}
 }
 
 type DistributionLearner struct {
@@ -199,37 +207,39 @@ func (dl *DistributionLearner) AddOutcome(outcome float64) {
 }
 
 type LearnedSummary struct {
-	Stable    bool    `json:"Stable"`
-	Stability float64 `json:"Stability"`
-	Count     int     `json:"Count"`
-	PPF       float64 `json:"PPF"`
-	Mean      float64 `json:"Mean"`
-	Variance  float64 `json:"Variance"`
-	Kurtosis  float64 `json:"Kurtosis"`
-	Skewness  float64 `json:"Skewness"`
-	Min       float64 `json:"Min"`
-	Q1        float64 `json:"Q1"`
-	Q2        float64 `json:"Q2"`
-	Q3        float64 `json:"Q3"`
-	Max       float64 `json:"Max"`
+	Stable     bool    `json:"Stable"`
+	Stability  float64 `json:"Stability"`
+	Confidence float64 `json:"Confidence"`
+	Count      int     `json:"Count"`
+	PPF        float64 `json:"PPF"`
+	Mean       float64 `json:"Mean"`
+	Variance   float64 `json:"Variance"`
+	Kurtosis   float64 `json:"Kurtosis"`
+	Skewness   float64 `json:"Skewness"`
+	Min        float64 `json:"Min"`
+	Q1         float64 `json:"Q1"`
+	Q2         float64 `json:"Q2"`
+	Q3         float64 `json:"Q3"`
+	Max        float64 `json:"Max"`
 }
 
 // TODO: include some notion of time or maybe save that for the sim results
 func (dl *DistributionLearner) Summarize() *LearnedSummary {
 	variance := dl.varM2 / float64(dl.count)
 	return &LearnedSummary{
-		Stable:    dl.meanStability.Stable,
-		Stability: dl.meanStability.Stability,
-		Count:     dl.count,
-		PPF:       float64(dl.failureCount) / float64(dl.count),
-		Mean:      dl.mean,
-		Variance:  variance,
-		Kurtosis:  dl.kurtM4/(float64(dl.count)*math.Pow(variance, 2)) - 3.0,
-		Skewness:  dl.skewM3 / (float64(dl.count) * math.Pow(variance, 1.5)),
-		Min:       dl.minVal,
-		Q1:        dl.quantiles[0.25].quantile(),
-		Q2:        dl.quantiles[0.5].quantile(),
-		Q3:        dl.quantiles[0.75].quantile(),
-		Max:       dl.maxVal,
+		Stable:     dl.meanStability.Stable,
+		Stability:  dl.meanStability.Stability,
+		Confidence: dl.meanStability.Confidence,
+		Count:      dl.count,
+		PPF:        float64(dl.failureCount) / float64(dl.count),
+		Mean:       dl.mean,
+		Variance:   variance,
+		Kurtosis:   dl.kurtM4/(float64(dl.count)*math.Pow(variance, 2)) - 3.0,
+		Skewness:   dl.skewM3 / (float64(dl.count) * math.Pow(variance, 1.5)),
+		Min:        dl.minVal,
+		Q1:         dl.quantiles[0.25].quantile(),
+		Q2:         dl.quantiles[0.5].quantile(),
+		Q3:         dl.quantiles[0.75].quantile(),
+		Max:        dl.maxVal,
 	}
 }
