@@ -8,6 +8,9 @@ type Investment struct {
 	// TODO: eventually I could link an outcome aggregator at construction that would addOutcome on accrue, could be cleaner
 }
 
+// TODO: Handle sub zero values on a withdrawl correctly
+
+// TODO: dont allow negative values on a deposit
 func (investment *Investment) deposit(amount float64) {
 	investment.Balance += amount
 	investment.yearDeposited += amount

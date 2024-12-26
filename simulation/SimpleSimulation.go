@@ -18,8 +18,8 @@ func SimpleSimulation(results *SimulationResult, precisionTarget float64, years 
 
 	startTime := time.Now().Unix()
 
-	// never run more than a 10 million sims for now
-	for sim := 0; sim < 10_000_000; sim++ {
+	// never run more than a billion sims for now
+	for sim := 0; sim < 1_000_000_000; sim++ {
 
 		magicAccount := models.NewMagic(&models.SandP500)
 		switch investment {
