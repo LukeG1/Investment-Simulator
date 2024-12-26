@@ -1,6 +1,16 @@
 # How to run
 
-...
+The process pretty much follows the [wails installation guide](https://wails.io/docs/gettingstarted/installation/), but to paraphrase:
+
+1. Make sure you have [node](https://nodejs.org/en/download/) installed: `npm --version`
+2. Make sure you have [go](https://go.dev/dl/) installed: `go version`
+3. On macos you need xcode tools: `xcode-select --install`
+4. The go bin (`~/go/bin`) needs to be in your path
+5. Install wails: `go install github.com/wailsapp/wails/v2/cmd/wails@latest`
+6. If you added the go bin to your path you should be able to check your enviorment with: `wails doctor`
+7. Pull the code
+8. in the root of the project boot the app in dev mode with: `wails dev`
+9. To build a standalone version of the app run: `wails build`
 
 # Goals
 
