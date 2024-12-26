@@ -1,15 +1,11 @@
 package models
 
-import (
-	"InvestmentSimulator/statistics"
-)
-
 type Investment struct {
 	Balance        float64
 	yearDeposited  float64
 	yearWithdrawn  float64
 	economicFactor *EconomicFactor
-	accumulator    *statistics.OutcomeAggregator
+	// TODO: eventually I could link an outcome aggregator at construction that would addOutcome on accrue, could be cleaner
 }
 
 func (investment *Investment) deposit(amount float64) {
@@ -23,7 +19,7 @@ func (investment *Investment) accrue() {
 	investment.yearWithdrawn = 0
 }
 
-// Abstract account implemented like here: https://stackoverflow.com/questions/30261032/how-to-implement-an-abstract-class-in-go
+// Abstract account implemented like so: https://stackoverflow.com/questions/30261032/how-to-implement-an-abstract-class-in-go
 type Account interface {
 	AllowedContribution() float64
 }

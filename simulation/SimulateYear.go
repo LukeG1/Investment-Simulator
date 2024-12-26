@@ -1,5 +1,0 @@
-package simulation
-
-func SimulateYear() {
-
-}

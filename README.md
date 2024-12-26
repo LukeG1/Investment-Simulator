@@ -43,15 +43,17 @@ Central to an account is a map of string to Investment called Investments. The k
 # Current Todo List:
 
 - [x] Move historic data to it's own package and refactor EconomicFactors
-- [ ] Flesh out SimulationResults structure
-- [ ] Implement SimulationResults in SimpleSimulation
-- [ ] Make SimpleSimulation anynchronus with periodic polling of current SimulationResults
-- [ ] Switch stability metric to modular EWMA delta
-- [ ] Display live stability check as the simulation runs
+- [x] Flesh out SimulationResults structure
+- [x] Implement SimulationResults in SimpleSimulation
+- [x] Make SimpleSimulation anynchronus with periodic polling of current SimulationResults
+- [x] Switch stability metric to standard error of mean of guesses
+- [ ] Add a cancel button
+- [ ] Componentize frontend
+- [x] Display live stability check as the simulation runs (kinda done)
 - [ ] Find an easier frontend UI library (MUI?)
 - [ ] Figure out a basic UI
 - [ ] Write actual tests for existing code
-- [ ] Remove dead code
+- [x] Remove dead code
 - [ ] Flesh out Household / HouseholdFactors
 - [ ] Consider go routines
 - [ ] Replace hardcoded historic data with modular config of some kind? start with SQLLite
@@ -63,6 +65,7 @@ Central to an account is a map of string to Investment called Investments. The k
 - [ ] Implement a simulation on a strategy
 - [ ] Optimize a strategy based on fixed inputs
 - [ ] add a how to set up in the readme
-- [ ] split into dev and main branch
+- [x] split into dev and main branch
 - [ ] add release pipeline to main branch
 - [ ] favicon
+- [ ] refactor LearnedSummary to be RandomVariable

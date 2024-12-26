@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { RunSimpleSimulation } from "../wailsjs/go/main/App";
+import { useEffect, useState } from "react";
+import {
+  RunSimpleSimulation,
+  CheckResults,
+  Cancel,
+} from "../wailsjs/go/main/App";
 import { statistics } from "../wailsjs/go/models";
 import {
   Area,
   AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -21,10 +23,24 @@ function App() {
   const [investment, setInvestment] = useState<string>("market"); // Initial value for years
   const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
 
-  const precisionOptions = [0.01, 0.1, 1, 10, 100, 1000];
+  const [TotalSims, setTotalSims] = useState(0);
+  const [SimulationDuration, setSimulationDuration] = useState(0);
+  const intervalTime = 100; // Set your interval time in milliseconds
+
+  const precisionOptions = [0.01, 0.1, 1, 10, 100, 1000, 10000];
 
   const handlePrecisionChange = (event: any) => {
     setPrecision(event.target.value);
+  };
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+      2,
+      "0"
+    )}:${String(secs).padStart(2, "0")}`;
   };
 
   function doRunSimpleSimulation() {
@@ -35,11 +51,31 @@ function App() {
       principal,
       investment,
       additional
-    ).then((result) => {
-      setRes(result);
-      setIsLoading(false); // Set loading to false when simulation is done
+    ).then(() => {
+      updateResults();
+      setIsLoading(false);
     });
   }
+
+  async function updateResults() {
+    let results = await CheckResults();
+    setTotalSims(results.TotalSims);
+    setSimulationDuration(results.SimulationDuration);
+    const innermostObjects = results.YearlyResults.map(
+      (item) => item.InvestmentResults[investment]
+    );
+    setRes(innermostObjects);
+  }
+
+  useEffect(() => {
+    if (!isLoading) return; // Stop interval when `isLoading` is false
+
+    const intervalId = setInterval(async () => {
+      await updateResults();
+    }, intervalTime);
+
+    return () => clearInterval(intervalId);
+  }, [isLoading, intervalTime]);
 
   return (
     <div className="font-mono w-full h-[100vh] bg-slate-100 text-slate-900 flex flex-row">
@@ -56,14 +92,14 @@ function App() {
               className="h-2 pb-0 mb-0 mx-6 bg-slate-500 rounded-lg appearance-none cursor-pointer text-green-500"
               type="range"
               min="0"
-              max="5"
+              max="6"
               step="1"
               value={precision}
               onChange={handlePrecisionChange}
             />
             <div className="flex flex-row justify-between m-4">
               <h3>{0.01}</h3>
-              <h3>{1000}</h3>
+              <h3>{"10,000"}</h3>
             </div>
           </div>
           <div className="flex flex-col align-top text-start pt-2 pb-2 pl-4 border-b-2 border-slate-500">
@@ -114,36 +150,95 @@ function App() {
               <option value="bonds">Bonds</option>
             </select>
           </div>
+          <div className="flex flex-col align-top text-start pt-2 pb-2 pl-4 border-b-2 border-slate-500">
+            <h3 className="text-lg">Status</h3>
+            <div>
+              <p>
+                Total Sims: {new Intl.NumberFormat("en-US").format(TotalSims)}
+              </p>
+              <p>Sim Duration: {formatDuration(SimulationDuration)}</p>
+              <p>
+                10,000,000 Sims:{" "}
+                {TotalSims === 0
+                  ? "00:00:00"
+                  : formatDuration(
+                      (SimulationDuration / TotalSims) * 10_000_000
+                    )}
+              </p>
+              <p>
+                Final Mean:{" "}
+                {res
+                  ? "$" +
+                    new Intl.NumberFormat("en-US").format(
+                      Math.round(res[res.length - 1].Mean)
+                    )
+                  : "$0"}
+              </p>
+              <p>
+                Final Median:{" "}
+                {res
+                  ? "$" +
+                    new Intl.NumberFormat("en-US").format(
+                      Math.round(res[res.length - 1].Q2)
+                    )
+                  : "$0"}
+              </p>
+              <p>
+                Final PPF:{" "}
+                {res
+                  ? (res[res.length - 1].PPF * 100).toFixed(2) + "%"
+                  : "0.00%"}
+              </p>
+              <p>
+                Final Stability:{" "}
+                {res ? "$" + res[res.length - 1].Stability.toFixed(2) : "$0.00"}
+              </p>
+              <p>
+                Final Confidence:{" "}
+                {res
+                  ? (res[res.length - 1].Confidence * 100).toFixed(2) + "%"
+                  : "0.00%"}
+              </p>
+            </div>
+          </div>
         </div>
         <div className="flex flex-col justify-end">
-          <button
-            className="bg-green-500 rounded-lg h-10 m-4 flex flex-col justify-center pl-8"
-            onClick={() => doRunSimpleSimulation()}
-            disabled={isLoading} // Disable the button when loading
-          >
-            {isLoading ? (
-              <div className="justify-center animate-spin border-2 border-slate-900 border-t-transparent w-5 h-5 rounded-full"></div>
-            ) : (
-              "Simulate"
-            )}
-          </button>
+          {isLoading ? (
+            <button
+              className="bg-red-500 rounded-lg h-10 m-4 flex items-center pl-4 pr-8"
+              onClick={() => Cancel()} // Ensure SetCancel is called (or your cancel function)
+            >
+              <div className="animate-spin border-2 border-slate-900 border-t-transparent w-5 h-5 rounded-full mr-2"></div>
+              <span>{"Cancel"}</span>
+            </button>
+          ) : (
+            <button
+              className="bg-green-500 rounded-lg h-10 m-4 flex flex-col justify-center pl-8"
+              onClick={() => doRunSimpleSimulation()}
+            >
+              {"Simulate"}
+            </button>
+          )}
         </div>
       </div>
-      <div className="w-2/3 h-full pt-8 flex flex-col pl-8 overflow-visible">
-        <ResponsiveContainer width="95%" height="50%">
+      <div className="w-2/3 h-full pt-8 flex flex-col pl-2 overflow-visibl justify-center">
+        <ResponsiveContainer width="100%" height="50%">
           <AreaChart
-            margin={{ right: 20 }}
+            margin={{ right: 60 }}
             data={
               res?.map((item, index) => ({
                 name: `${index + 1}`,
                 q2: [item.Q2, item.Q2],
                 range: [item.Q1, item.Q3],
-                // zero: [0, 0],
+                confidence: [Math.min(item.Confidence / 0.95, 1.0), 1], // Confidence clamped to [0, 1]
+                ppf: [Math.min(item.PPF, 1), Math.min(item.PPF, 1)],
               })) || []
             }
           >
             <CartesianGrid stroke="#ccc" />
             <XAxis dataKey="name" />
+
+            {/* Primary Y-Axis for dollar values */}
             <YAxis
               orientation="right"
               tickFormatter={(tick) => {
@@ -153,7 +248,27 @@ function App() {
               }}
               domain={[0, "auto"]}
             />
-            {/* Shaded area between Q1 and Q3 */}
+
+            {/* Secondary Y-Axis for confidence, scaled from 0 to 1 */}
+            <YAxis
+              yAxisId="confidence"
+              orientation="left"
+              domain={[0, 1]}
+              tickFormatter={(tick) => `${Math.round(tick * 100)}%`}
+              hide={false}
+            />
+
+            {/* Red background area for inverse confidence */}
+            <Area
+              animationDuration={100}
+              dataKey="confidence"
+              fill="red"
+              fillOpacity={0.1}
+              strokeWidth={0}
+              yAxisId="confidence" // Bind to the secondary Y-axis
+            />
+
+            {/* Existing green range area */}
             <Area
               animationDuration={100}
               dataKey="range"
@@ -162,10 +277,7 @@ function App() {
               fillOpacity={0.3}
             />
 
-            {/* 
-            Line for Q2 (median) 
-            TODO: add a mean median switch (3 way show both?)
-            */}
+            {/* Green line for q2 */}
             <Area
               animationDuration={100}
               dataKey="q2"
@@ -178,49 +290,21 @@ function App() {
                 strokeDasharray: "",
               }}
             />
-            {/* <Area
+
+            {/* Blue line for PPF */}
+            <Area
               animationDuration={100}
-              dataKey="zero"
-              stroke="#292929"
               strokeWidth={2}
-            /> */}
-          </AreaChart>
-        </ResponsiveContainer>
-        <ResponsiveContainer width="95%" height="50%">
-          <LineChart
-            margin={{ right: 20 }}
-            data={
-              res?.map((item, index) => ({
-                name: `${index + 1}`,
-                mean: item.PPF,
-              })) || []
-            }
-          >
-            <Line
-              type="monotone"
-              dataKey="mean"
+              dataKey="ppf"
               stroke="#8884d8"
-              animationDuration={100}
+              type="monotone"
+              yAxisId="confidence"
             />
-            <CartesianGrid stroke="#ccc" />
-            <XAxis dataKey="name" />
-            <YAxis
-              orientation="right"
-              type="number"
-              domain={[0, 1]}
-              tickFormatter={(tick) => {
-                return `${tick}%`;
-              }}
-            />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
 }
 
-// TODO:
-// take multiple investments at the same time
-// include more than exist right now like real estate or gold
-// use websockets to get more clear commmunication and stop early / see live results
 export default App;

@@ -11,13 +11,10 @@ import (
 )
 
 // TODO: document
-// TODO: refactor stability check to struct that can be applied to multiple metrics using delta of ewma
-// TODO: stability checker based on rate of change of ewma, what if your random values happen to be the
-// same twice in a row, it would come as stable, wait for n iterations minimum to be stable? use a small
-// window? other solution?
 
 const quantileLength int = 5
 const minimumIterations int = 30
+const cI = 1.96
 
 func calcP2(qp1, q, qm1, d, np1, n, nm1 float64) float64 {
 	outer := d / (np1 - nm1)
@@ -123,47 +120,40 @@ func (q *quantile) quantile() float64 {
 	return q.heights[int(math.Min(math.Max(l-1, 0), l*q.p))]
 }
 
+// Track the distribution of the guess of a value to know when it's stable
+// no real source, pretty much just an invocation of the central limit theorem
+// https://quant.stackexchange.com/a/21769
 type StabilityChecker struct {
-	ewma            float64
-	alpha           float64 // Smoothing factor
+	// TODO: should n be a pointer to the true count to ensure sync?
+	n               int
+	mean            float64
+	variance        float64
 	precisionTarget float64
-	stable          bool
-	count           int
-	lastDelta       float64
+	Stability       float64
+	Confidence      float64
+	Stable          bool
 }
 
-// NewStabilityChecker creates a new StabilityChecker with a specified precision target
-// and an optional smoothing factor (alpha). If alpha is zero, it defaults to 2/(n+1).
-func NewStabilityChecker(precisionTarget float64, alpha float64) *StabilityChecker {
-	if alpha <= 0 || alpha > 1 {
-		alpha = 0.0 // Default to dynamic alpha calculation
-	}
+func NewStabilityChecker(precisionTarget float64) *StabilityChecker {
 	return &StabilityChecker{
 		precisionTarget: precisionTarget,
-		alpha:           alpha,
 	}
 }
 
-// Update processes a new value and updates EWMA and stability status
 func (sc *StabilityChecker) Update(value float64) {
-	sc.count++
+	sc.n++
+	delta := value - sc.mean
+	sc.mean += delta / float64(sc.n)
+	sc.variance += delta * (value - sc.mean)
+	standardError := math.Sqrt(sc.variance / float64(sc.n))
+	sc.Stability = cI * math.Sqrt(sc.variance/float64(sc.n))
+	sc.Stable = sc.n > minimumIterations && sc.Stability < sc.precisionTarget
 
-	// Calculate smoothing factor dynamically for the first few samples if alpha is not set
-	if sc.alpha == 0 {
-		sc.alpha = 2.0 / (float64(sc.count) + 1.0)
-	}
-
-	// Update EWMA using the smoothing factor
-	oldEwma := sc.ewma
-	sc.ewma = sc.alpha*value + (1-sc.alpha)*sc.ewma
-
-	// Check stability: compare delta with the precision target
-	delta := math.Abs(sc.ewma - oldEwma)
-	sc.lastDelta = delta
-	if sc.count > 1 && delta < sc.precisionTarget {
-		sc.stable = true
-	} else {
-		sc.stable = false
+	sc.Confidence = 0
+	if standardError > 0 {
+		zScore := sc.precisionTarget / standardError
+		// TODO: ERF is sometimes giving errors, check inputs when it gives one?
+		sc.Confidence = 2 * (0.5 - math.Abs(0.5-math.Erf(zScore/math.Sqrt2)/2))
 	}
 }
 
@@ -179,13 +169,9 @@ type DistributionLearner struct {
 	quantiles       map[float64]*quantile
 	randSrc         *rand.Rand
 	precisionTarget float64
-	// windowSize      int
-	// meanWindow      []float64
-	meanStability *StabilityChecker
-	ppfStability  *StabilityChecker
+	meanStability   *StabilityChecker
 }
 
-// TODO: should I really be looking at a window of the varaince of the estimates
 func NewDistributionLearner(precisionTarget float64) *DistributionLearner {
 	return &DistributionLearner{
 		minVal:          math.Inf(1),
@@ -193,10 +179,7 @@ func NewDistributionLearner(precisionTarget float64) *DistributionLearner {
 		quantiles:       map[float64]*quantile{0.25: newQuantile(0.25), 0.5: newQuantile(0.5), 0.75: newQuantile(0.75)},
 		randSrc:         rand.New(rand.NewSource(time.Now().UnixNano())),
 		precisionTarget: precisionTarget,
-		// windowSize:      windowSize,
-		// meanWindow:      make([]float64, windowSize),
-		meanStability: NewStabilityChecker(precisionTarget, .05),
-		ppfStability:  NewStabilityChecker(.01/100., 0),
+		meanStability:   NewStabilityChecker(precisionTarget),
 	}
 }
 
@@ -205,11 +188,8 @@ func (dl *DistributionLearner) AddOutcome(outcome float64) {
 	dl.minVal = math.Min(dl.minVal, outcome)
 	dl.maxVal = math.Max(dl.maxVal, outcome)
 
-	dl.mean += delta / float64(dl.count+1)
 	dl.count++
-
-	// index := dl.count % dl.windowSize
-	// dl.meanWindow[index] = dl.mean
+	dl.mean += delta / float64(dl.count)
 
 	dl.varM2 += delta * (outcome - dl.mean)
 
@@ -217,8 +197,7 @@ func (dl *DistributionLearner) AddOutcome(outcome float64) {
 		dl.failureCount++
 	}
 
-	dl.meanStability.Update(outcome)
-	dl.ppfStability.Update(float64(dl.failureCount) / float64(dl.count))
+	dl.meanStability.Update(dl.mean)
 
 	for _, q := range dl.quantiles {
 		q.add(outcome)
@@ -229,34 +208,39 @@ func (dl *DistributionLearner) AddOutcome(outcome float64) {
 }
 
 type LearnedSummary struct {
-	Stable   bool    `json:"Stable"`
-	Count    int     `json:"Count"`
-	PPF      float64 `json:"PPF"`
-	Mean     float64 `json:"Mean"`
-	Variance float64 `json:"Variance"`
-	Kurtosis float64 `json:"Kurtosis"`
-	Skewness float64 `json:"Skewness"`
-	Min      float64 `json:"Min"`
-	Q1       float64 `json:"Q1"`
-	Q2       float64 `json:"Q2"`
-	Q3       float64 `json:"Q3"`
-	Max      float64 `json:"Max"`
+	Stable     bool    `json:"Stable"`
+	Stability  float64 `json:"Stability"`
+	Confidence float64 `json:"Confidence"`
+	Count      int     `json:"Count"`
+	PPF        float64 `json:"PPF"`
+	Mean       float64 `json:"Mean"`
+	Variance   float64 `json:"Variance"`
+	Kurtosis   float64 `json:"Kurtosis"`
+	Skewness   float64 `json:"Skewness"`
+	Min        float64 `json:"Min"`
+	Q1         float64 `json:"Q1"`
+	Q2         float64 `json:"Q2"`
+	Q3         float64 `json:"Q3"`
+	Max        float64 `json:"Max"`
 }
 
+// TODO: include some notion of time or maybe save that for the sim results
 func (dl *DistributionLearner) Summarize() *LearnedSummary {
 	variance := dl.varM2 / float64(dl.count)
 	return &LearnedSummary{
-		Stable:   dl.count > minimumIterations && dl.meanStability.stable,
-		Count:    dl.count,
-		PPF:      float64(dl.failureCount) / float64(dl.count),
-		Mean:     dl.mean,
-		Variance: variance,
-		Kurtosis: dl.kurtM4/(float64(dl.count)*math.Pow(variance, 2)) - 3.0,
-		Skewness: dl.skewM3 / (float64(dl.count) * math.Pow(variance, 1.5)),
-		Min:      dl.minVal,
-		Q1:       dl.quantiles[0.25].quantile(),
-		Q2:       dl.quantiles[0.5].quantile(),
-		Q3:       dl.quantiles[0.75].quantile(),
-		Max:      dl.maxVal,
+		Stable:     dl.meanStability.Stable,
+		Stability:  dl.meanStability.Stability,
+		Confidence: dl.meanStability.Confidence,
+		Count:      dl.count,
+		PPF:        float64(dl.failureCount) / float64(dl.count),
+		Mean:       dl.mean,
+		Variance:   variance,
+		Kurtosis:   dl.kurtM4/(float64(dl.count)*math.Pow(variance, 2)) - 3.0,
+		Skewness:   dl.skewM3 / (float64(dl.count) * math.Pow(variance, 1.5)),
+		Min:        dl.minVal,
+		Q1:         dl.quantiles[0.25].quantile(),
+		Q2:         dl.quantiles[0.5].quantile(),
+		Q3:         dl.quantiles[0.75].quantile(),
+		Max:        dl.maxVal,
 	}
 }
