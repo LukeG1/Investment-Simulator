@@ -8,7 +8,7 @@ type SimulationResult struct {
 	YearlyResults      []AccountResults `json:"YearlyResults"`
 	TotalSims          int              `json:"TotalSims"`
 	SimulationDuration int64            `json:"SimulationDuration"`
-	// Cancel             bool             `json:"Cancel"`
+	Cancel             bool             `json:"Cancel"`
 	// more metadata needed?
 	// TODO: consider a total accumulator
 }

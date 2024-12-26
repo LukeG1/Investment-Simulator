@@ -34,7 +34,10 @@ func (a *App) RunSimpleSimulation(precisionTarget float64, years int, startingBa
 	simulation.SimpleSimulation(activeSimulation, precisionTarget, years, startingBalance, investment, additional)
 }
 
-// TODO: add a cancel button?
 func (a *App) CheckResults() simulation.SimulationResult {
 	return *activeSimulation
+}
+
+func (a *App) Cancel() {
+	activeSimulation.Cancel = true
 }

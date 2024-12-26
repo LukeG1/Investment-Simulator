@@ -50,6 +50,9 @@ func SimpleSimulation(results *SimulationResult, precisionTarget float64, years 
 		results.SimulationDuration = time.Now().Unix() - startTime
 
 		if sim%2_000 == 0 {
+			if results.Cancel {
+				break
+			}
 			stable := true
 			for year := 0; year < years; year++ {
 				summary := *distributionLearners[year].Summarize()

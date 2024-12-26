@@ -36,6 +36,7 @@ export namespace simulation {
 	    YearlyResults: AccountResults[];
 	    TotalSims: number;
 	    SimulationDuration: number;
+	    Cancel: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new SimulationResult(source);
@@ -46,6 +47,7 @@ export namespace simulation {
 	        this.YearlyResults = this.convertValues(source["YearlyResults"], AccountResults);
 	        this.TotalSims = source["TotalSims"];
 	        this.SimulationDuration = source["SimulationDuration"];
+	        this.Cancel = source["Cancel"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
