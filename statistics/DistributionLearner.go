@@ -152,6 +152,7 @@ func (sc *StabilityChecker) Update(value float64) {
 	sc.Confidence = 0
 	if standardError > 0 {
 		zScore := sc.precisionTarget / standardError
+		// TODO: ERF is sometimes giving errors, check inputs when it gives one?
 		sc.Confidence = 2 * (0.5 - math.Abs(0.5-math.Erf(zScore/math.Sqrt2)/2))
 	}
 }

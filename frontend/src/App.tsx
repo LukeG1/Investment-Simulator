@@ -479,7 +479,15 @@ function App() {
                       (SimulationDuration / TotalSims) * 10_000_000
                     )}
               </p>
-
+              <p>
+                Final Mean:{" "}
+                {res
+                  ? "$" +
+                    new Intl.NumberFormat("en-US").format(
+                      Math.round(res[res.length - 1].Mean)
+                    )
+                  : "$0"}
+              </p>
               <p>
                 Final Median:{" "}
                 {res
@@ -488,6 +496,12 @@ function App() {
                       Math.round(res[res.length - 1].Q2)
                     )
                   : "$0"}
+              </p>
+              <p>
+                Final PPF:{" "}
+                {res
+                  ? (res[res.length - 1].PPF * 100).toFixed(2) + "%"
+                  : "0.00%"}
               </p>
               <p>
                 Final Stability:{" "}
